@@ -1,0 +1,19 @@
+{
+  "name": "my-fruit-demo",
+  "version": "1.0.0",
+  "description": "Trying to get it to work on online IDE!",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon src/index.js localhost 8080"
+  },
+  "dependencies": {
+    "better-sqlite3": "7.1.4",
+    "body-parser": "1.19.0",
+    "express": "4.17.1",
+    "express-formidable": "1.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "1.18.4"
+  },
+  "keywords": []
+}

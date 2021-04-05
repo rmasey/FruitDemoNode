@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Demo page</title>
+    <link rel="stylesheet" type="text/css" href="/client/css/styles.css" />
+
+    <script>
+      function pageLoad() {
+        console.log("invoked pageLoad()");
+        document.getElementById("editDiv").style.display = "none";
+
+        const url = "/list";
+        fetch(url, {
+          method: "GET"
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((response) => {
+            if (response.hasOwnProperty("Error")) {
+              //checks if response from web server has a key "Error"
+              alert(JSON.stringify(response)); // if it does, convert JSON object to string and alert
+            } else {
+              formatFruitList(response); // otherwise format the data as an HTML table
+            }
+          });
+      }
+
+      function formatFruitList(data) {
+        console.log(data);
+        let fruitsHTML =
+          "<table><tr><th>Id</th><th>Name</th><th>Image</th><th>Colour</th><th>Size</th><th class='last'>Options</th></tr>";
+        for (let item of data) {
+          fruitsHTML +=
+            "<tr><td>" +
+            item.id +
+            "</td><td>" +
+            item.name +
+            "</td><td><img src='/client/img/'" +
+            item.image +
+            "</td><td><span class='fruitColour' style='background-color:'" +
+            item.colour +
+            "></span></td><td>" +
+            item.size +
+            "</td><td class='last'>" +
+            "<button onclick='editFruit(" +
+            item.id +
+            ")' class='editButton'>Edit</button>" +
+            "<button onclick = 'deleteFruit(" +
+            item.id +
+            ")' class='deleteButton'>Delete</button>" +
+            "</td></tr>";
+        }
+
+        fruitsHTML += "</table>";
+
+        document.getElementById("listDiv").innerHTML = fruitsHTML;
+      }
+
+      function editFruit(id) {
+        console.log("Invoked editFruit()");
+        const url = "/get/";
+
+        document.getElementById("editDiv").style.display = "block"; //show the form
+
+        // get the data, use data param (rather than formParams)
+        fetch(url + id, {
+          method: "GET"
+        })
+          .then((response) => {
+            return response.json(); //return promise to JSON
+          })
+          .then((response) => {
+            if (response.hasOwnProperty("Error")) {
+              //checks if response from web server has a key "Error"
+              alert(JSON.stringify(response)); // if it does, convert JSON object to string and alert
+            } else {
+              console.log(response);
+              //returns array of objects
+              //since only 1 object, must be at index  0
+              document.getElementById("fruitId").value = id;
+              document.getElementById("fruitName").value = response[0].name;
+              document.getElementById("fruitImage").value = response[0].image;
+              document.getElementById("fruitColour").value = response[0].colour;
+              document.getElementById("fruitSize").value = response[0].size;
+            }
+          });
+      }
+
+      function updateFruit() {
+        console.log("Invoked updateFruit()");
+        if (document.getElementById("fruitName").value.trim() === "") {
+          alert("Please provide a fruit name.");
+          return;
+        }
+        if (document.getElementById("fruitImage").value.trim() === "") {
+          alert("Please provide a fruit image.");
+          return;
+        }
+        if (document.getElementById("fruitColour").value.trim() === "") {
+          alert("Please provide a fruit colour.");
+          return;
+        }
+        if (document.getElementById("fruitSize").value.trim() === "") {
+          alert("Please provide a fruit size.");
+          return;
+        }
+
+        const url = "/update";
+        const formData = new FormData(document.getElementById("fruitForm"));
+
+        fetch(url, { method: "POST", body: formData })
+          .then((response) => response.json())
+          .then((responseData) => {
+            if (responseData.hasOwnProperty("error")) {
+              alert(responseData.error);
+            } else {
+              pageLoad();
+            }
+          });
+      }
+
+      function insertFruit() {
+        //validate
+        if (document.getElementById("fruitName").value.trim() === "") {
+          alert("Please provide a fruit name.");
+          return;
+        }
+        if (document.getElementById("fruitImage").value.trim() === "") {
+          alert("Please provide a fruit image.");
+          return;
+        }
+        if (document.getElementById("fruitColour").value.trim() === "") {
+          alert("Please provide a fruit colour.");
+          return;
+        }
+        if (document.getElementById("fruitSize").value.trim() === "") {
+          alert("Please provide a fruit size.");
+          return;
+        }
+        var url = "/insert";
+        var formData = new FormData(document.getElementById("fruitForm"));
+
+        fetch(url, {
+          method: "POST",
+          body: formData
+        })
+          .then((response) => {
+            return response.json(); //return promise to JSON
+          })
+          .then((response) => {
+            if (response.hasOwnProperty("Error")) {
+              //check for key (aka property) called Error
+              alert(response.error);
+            } else {
+              document.getElementById("listDiv").style.display = "block";
+              document.getElementById("editDiv").style.display = "none";
+              pageLoad();
+            }
+          });
+      }
+
+      function cancel() {
+        document.getElementById("editDiv").style.display = "none";
+      }
+
+      function deleteFruit(id) {
+        console.log("Invoked deleteFruit() with ID " + id);
+
+        var url = "/delete";
+        var formData = new FormData();
+        formData.append("id", id);
+
+        fetch(url, {
+          method: "POST",
+          body: formData
+        })
+          .then((response) => {
+            return response.json(); //method returns a promise, have to return from here to get text
+          })
+          .then((response) => {
+            if (response.hasOwnProperty("Error")) {
+              //checks if response from server has a key "Error:"
+              alert(JSON.stringify(response)); // if it does, convert JSON object to string and alert
+            } else {
+              pageLoad();
+            }
+          });
+      }
+
+      function showForm() {
+        document.getElementById("editDiv").style.display = "block";
+        //clear values incase edit is presssed before add
+        // need to do!
+      }
+    </script>
+  </head>
+
+  <body onload="pageLoad()">
+    <div id="content">
+      <div id="pageHeader">
+        <div class="floatRight">
+          <button onclick="showForm()">Add New Fruit</button>
+        </div>
+        <h1>CRUD with Fruit!</h1>
+      </div>
+
+      <div id="listDiv"></div>
+
+      <div id="editDiv">
+        <h2 id="editHeading"></h2>
+        <form id="fruitForm">
+          <input type="hidden" name="id" id="fruitId" />
+          <div>
+            <label for="fruitName" class="label">Name:</label>
+            <input type="text" name="name" id="fruitName" />
+          </div>
+          <div>
+            <label for="fruitImage" class="label">Image:</label>
+            <input type="text" name="image" id="fruitImage" />
+          </div>
+          <div>
+            <label for="fruitColour" class="label">Colour:</label>
+            <input type="text" name="colour" id="fruitColour" />
+          </div>
+          <div>
+            <label for="fruitSize" class="label">Size:</label>
+            <input type="text" name="size" id="fruitSize" />
+          </div>
+          <div></div>
+        </form>
+        <button onclick="cancel()">Canel Fruity Fruty</button>
+        <button onclick="insertFruit()">INsert Fruity Fruty</button>
+        <button onclick="updateFruit()">Update Fruity Fruty</button>
+      </div>
+    </div>
+  </body>
+</html>
